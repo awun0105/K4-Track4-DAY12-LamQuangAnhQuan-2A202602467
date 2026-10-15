@@ -85,7 +85,12 @@ Dán bảng "xe sau phát lại" và "xe sau phản ứng". `T` bạn hiệu ch�
 ## Câu 7 · Cổng phát hành và sửa
 Quy tắc nào chặn PercMLP và nguyên nhân gốc là gì (dẫn số)? Bạn sửa bằng gì và vì sao nó chữa đúng nguyên nhân? Sau khi qua cổng, PercMLP+ có **tốt hơn** IDM không? Nó có nên được phát hành không, và bạn đề xuất làm gì trước khi quyết định?
 
-(trả lời ở đây)
+- Năm quy tắc chặn PercMLP: **R2** (đâm 2,8 % trên log, cận trên 3,5 %; IDM 0,07 %), **R3** (14,5 % trên lát cắt xe dẫn phanh; IDM 1,2 %), **R4** (24,0 % lưới tránh được nhưng vẫn đâm; IDM 0,0 %), **R5** (dải qua seed 0,5–2,8 %, vượt 1 điểm), **R6** (31,4 % lưới khi xe sau phản ứng; IDM 7,4 %).
+- Nguyên nhân gốc có hai loại. (a) **Kịch bản log không chứa** (R4, R6): cắt vào tốc độ cao không có trong log, PercMLP đâm ở vùng mà IDM tránh được. (b) **Sai số tích lũy khi tự lái** (R2, R3, R5): L2 vòng hở của PercMLP tốt nhất (0,619 m), nhưng các sai số nhỏ cộng dồn thành va chạm khi nó tự lái, và kết quả đổi theo seed.
+- Sửa bằng hai việc trong bước 7: thêm 20.000 kịch bản cắt vào mô phỏng, nhãn do luật IDM gán, để học tình huống log không có (chữa nguyên nhân a); và DAgger 2 vòng, cho mô hình tự lái trên log huấn luyện, gắn nhãn IDM tại chính các trạng thái nó đi vào, rồi huấn luyện lại (chữa nguyên nhân b, vì mô hình học cách phục hồi từ sai số của chính nó).
+- Sau sửa: R4 24,0 % → 0,3 %; R2 2,8 % → 0,3 % (cận trên 0,5 %); R3 14,5 % → 2,4 %; R5 dải 0,5–2,8 % → 0,2–0,3 %; R6 31,4 % → 7,7 % (ngưỡng 9,4 %). PercMLP+ qua 7/7 quy tắc.
+- **PercMLP+ không tốt hơn IDM.** Cổng kiểm tra "không kém hơn", và PercMLP+ chỉ nằm trong biên cho phép. Trên log nó đâm 8 trên 2.883 quỹ đạo (seed xấu nhất) so với 2 của IDM; trên lưới cắt vào 0,3 % so với 0,0 %; ở vận tốc 20 m/s (ngoài dữ liệu huấn luyện ≤ 16 m/s) 0,3–3,8 % so với 0,0 % của IDM; L2 vòng hở 0,810 m, tệ hơn PercMLP (0,619 m).
+- Tôi **không đề xuất thay IDM bằng PercMLP+ ngay**. Trước khi quyết định: (i) chạy nhiều split và nhiều seed hơn để kiểm tra các số không chỉ đúng với split 7379; (ii) thử ở vận tốc 16–20 m/s và ca phanh mạnh hơn 3,6 m/s² (8,6 % lưới chưa được kiểm chứng); (iii) chạy PercMLP+ song song với IDM ở chế độ quan sát (không điều khiển xe) trên dữ liệu thật rồi mới xét cho phép điều khiển.
 
 ## Câu 8 · Bài lab này không chứng minh được gì
 Chọn **ít nhất ba** giới hạn quan trọng nhất đối với việc quyết định phát hành và giải thích vì sao mỗi cái làm kết luận của bạn kém chắc chắn. Điều gì cần làm tiếp để thu hẹp khoảng cách đến thế giới thật?
