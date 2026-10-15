@@ -14,10 +14,8 @@ def ttc(gap, closing):
 
 def required_decel(gap, closing):
     """Deceleration [m/s^2] needed to remove the closing speed exactly at contact: closing^2 / (2 gap)."""
-    # TODO (Bước 2): hãy tự cài hàm này. Gợi ý:
-    #   closing^2 / (2 * gap) khi closing > 0, ngược lại 0. Ví dụ của slide: gap 12 m, closing 5 m/s -> 1,04
-    #   m/s^2.
-    raise NotImplementedError("TODO required_decel: xem GUIDE.md, Bước 2")
+    gap, closing = np.asarray(gap, float), np.asarray(closing, float)
+    return np.where(closing > 0, closing ** 2 / (2 * gap), 0.0)
 
 
 def unavoidable(gaps, dvs, t_react=0.0, b_max=C.B_MAX):
