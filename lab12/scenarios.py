@@ -7,10 +7,9 @@ from . import config as C
 
 def ttc(gap, closing):
     """Time to collision [s] = gap / closing speed (inf when the gap is not closing)."""
-    # TODO (Bước 2): hãy tự cài hàm này. Gợi ý:
-    #   TTC = gap / closing khi closing > 0, ngược lại inf. Phải chạy được trên mảng numpy (dùng np.where,
-    #   tránh chia cho 0).
-    raise NotImplementedError("TODO ttc: xem GUIDE.md, Bước 2")
+    gap, closing = np.asarray(gap, float), np.asarray(closing, float)
+    safe = np.where(closing > 0, closing, 1.0)                    # the division is only used where closing > 0
+    return np.where(closing > 0, gap / safe, np.inf)
 
 
 def required_decel(gap, closing):
