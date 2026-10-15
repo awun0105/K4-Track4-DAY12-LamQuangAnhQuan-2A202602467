@@ -20,7 +20,7 @@
 | IDM | 1,500 | 0,07 (2 trên 2.883 quỹ đạo) | (baseline) |
 | EgoMLP | 0,760 ± 0,003 (5 seed) | 15,8 … 35,7 (trung bình 22,1; seed xấu nhất 35,7) | CHẶN (R2, R3, R4, R5, R6) |
 | PercMLP | 0,619 ± 0,002 (5 seed) | 0,5 … 2,8 (trung bình 1,4; seed xấu nhất 2,8) | CHẶN (R2, R3, R4, R5, R6) |
-| PercMLP+ (sau khi sửa) | | | |
+| PercMLP+ (sau khi sửa) | 0,810 ± 0,015 (5 seed) | 0,2 … 0,3 (trung bình 0,20; seed xấu nhất 0,28, CI 95 % [0,14; 0,55]) | PHÁT HÀNH (7/7 quy tắc) |
 
 ## Câu 1 · Dữ liệu
 Bước 0 bạn phát hiện những vấn đề gì ở dữ liệu? Vì sao không dùng cột `Acc_LV`, và bạn thay bằng gì? Bao nhiêu quỹ đạo bị loại vì trùng, và vì sao chia theo quỹ đạo?
