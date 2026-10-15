@@ -7,8 +7,8 @@
 | Họ và tên | `Lâm Quang Anh Quân` |
 | MSSV (đúng bằng `--student-id` bạn đã chạy) | `202602467` |
 | GitHub | `awun0105` |
-| Seed chia dữ liệu / seed mô hình (xem `evidence/closedloop.json`, mục `student`) | `<điền>` |
-| Số seed huấn luyện bạn dùng (`--seeds`) | `<điền>` |
+| Seed chia dữ liệu / seed mô hình (xem `evidence/closedloop.json`, mục `student`) | `7379` / `7992` (các seed mô hình 7992–7996) |
+| Số seed huấn luyện bạn dùng (`--seeds`) | `5` (mặc định) |
 
 ## Kết quả cuối
 
