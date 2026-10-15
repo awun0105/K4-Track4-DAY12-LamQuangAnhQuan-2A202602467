@@ -29,13 +29,21 @@ def unavoidable(gaps, dvs, t_react=0.0, b_max=C.B_MAX):
 def mine_braking(logs, threshold=C.BRAKE_THRESHOLD, min_steps=5):
     """Find trajectories where the lead brakes: smoothed deceleration below `threshold` for at least `min_steps`
     consecutive steps (0.5 s). Returns a list of event dicts (one per trajectory, first event only)."""
-    # TODO (Bước 2): hãy tự cài hàm này. Gợi ý:
-    #   Với mỗi quỹ đạo i: a = logs.a_lead[i, :logs.n[i]] (đã làm mượt; KHÔNG dùng acc_lead_raw). Tìm lần
-    #   ĐẦU TIÊN có đủ min_steps bước liên tiếp a < threshold. onset_step = bước bắt đầu chuỗi đó. Mỗi quỹ
-    #   đạo tối đa 1 sự kiện. Trả list dict có đúng các khoá: traj, onset_step, peak_decel (a nhỏ nhất trong
-    #   chuỗi), gap_m (logs.gap[i, onset]), closing_m_s (logs.v_ego[i, onset] - logs.v_lead_s[i, onset]),
-    #   ego_speed (logs.v_ego[i, onset]).
-    raise NotImplementedError("TODO mine_braking: xem GUIDE.md, Bước 2")
+    events = []
+    for i in range(len(logs)):
+        a = logs.a_lead[i, :logs.n[i]]                            # smoothed lead acceleration, never acc_lead_raw
+        below = np.r_[0, (a < threshold).astype(int), 0]          # pad so every run has a start and an end
+        starts = np.flatnonzero(np.diff(below) == 1)              # first step of each run of braking
+        ends = np.flatnonzero(np.diff(below) == -1)               # step just after each run
+        long = np.flatnonzero(ends - starts >= min_steps)
+        if long.size == 0:
+            continue
+        onset, end = starts[long[0]], ends[long[0]]               # first run that lasts min_steps or more
+        events.append({"traj": int(i), "onset_step": int(onset), "peak_decel": float(a[onset:end].min()),
+                       "gap_m": float(logs.gap[i, onset]),
+                       "closing_m_s": float(logs.v_ego[i, onset] - logs.v_lead_s[i, onset]),
+                       "ego_speed": float(logs.v_ego[i, onset])})
+    return events
 
 
 def human_brake_limit(logs, q=0.1):
