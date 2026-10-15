@@ -16,10 +16,10 @@
 
 | Bộ điều khiển | L2 vòng hở (m) | Va chạm vòng kín trên log (%) | Quyết định cổng |
 |---|---|---|---|
-| constant-velocity | | | |
-| IDM | | | (baseline) |
-| EgoMLP | | | |
-| PercMLP | | | |
+| constant-velocity | 1,254 | 19,6 | CHẶN (R2, R3, R4, R6) |
+| IDM | 1,500 | 0,07 (2 trên 2.883 quỹ đạo) | (baseline) |
+| EgoMLP | 0,760 ± 0,003 (5 seed) | 15,8 … 35,7 (trung bình 22,1; seed xấu nhất 35,7) | CHẶN (R2, R3, R4, R5, R6) |
+| PercMLP | 0,619 ± 0,002 (5 seed) | 0,5 … 2,8 (trung bình 1,4; seed xấu nhất 2,8) | CHẶN (R2, R3, R4, R5, R6) |
 | PercMLP+ (sau khi sửa) | | | |
 
 ## Câu 1 · Dữ liệu
