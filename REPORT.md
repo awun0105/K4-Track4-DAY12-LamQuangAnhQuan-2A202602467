@@ -52,7 +52,11 @@ Lưới của bạn (tốc độ cruise, giới hạn khoảng cách, số ô): 
 ## Câu 4 · Vòng hở và vòng kín
 Dán bảng L2 và tỷ lệ va chạm của bốn bộ điều khiển (kèm hạng ở mỗi cách chấm). Cặp nào đổi thứ tự? Vì sao IDM có L2 như vậy mà vẫn lái tốt? Vì sao EgoMLP có L2 tốt hơn constant-velocity mà vẫn đâm?
 
-(trả lời ở đây)
+- Hạng ở vòng hở (L2 thấp hơn là tốt hơn): PercMLP 1 (0,619 m), EgoMLP 2 (0,760 m), const-vel 3 (1,254 m), IDM 4 (1,500 m).
+- Hạng ở vòng kín (va chạm thấp hơn là tốt hơn): IDM 1 (0,07 %), PercMLP 2 (1,4 %, trung bình 5 seed), const-vel 3 (19,6 %), EgoMLP 4 (22,1 %, trung bình 5 seed).
+- Bốn cặp đổi thứ tự: (const-vel, IDM), (const-vel, EgoMLP), (IDM, EgoMLP), (IDM, PercMLP). Đáng chú ý nhất: IDM có L2 xấu nhất nhưng an toàn nhất, còn EgoMLP có L2 tốt hơn const-vel nhưng đâm nhiều hơn.
+- IDM có L2 lớn vì nó không bắt chước người lái: T = 1,2 s và s0 = 2 m, trong khi headway trung vị của người lái trong log là 1,87 s, nên quỹ đạo luôn lệch. Trong vòng kín nó thấy khoảng cách thật và phanh theo ngay, nên chỉ đâm 2 trên 2.883 quỹ đạo, cả hai đều có xe dẫn phanh.
+- EgoMLP chỉ nhìn tốc độ quá khứ của chính xe ta. Nó học được xu hướng tăng/giảm tốc chung nên L2 tốt hơn const-vel, kể cả trên lát cắt xe dẫn phanh (1,096 m so với 1,903 m). Nhưng nó không thấy khoảng cách tới xe dẫn nên không phanh kịp: trên 166 quỹ đạo có xe dẫn phanh, nó đâm 44–57 %, gần bằng const-vel (53,6 %).
 
 ## Câu 5 · Một lần chạy chưa đủ
 EgoMLP dao động bao nhiêu giữa các seed? Khoảng tin cậy Wilson nói gì? Nếu bạn chỉ chạy đúng một seed thì có thể báo kết quả nào, và vì sao điều đó nguy hiểm?
