@@ -34,7 +34,11 @@ Bước 0 bạn phát hiện những vấn đề gì ở dữ liệu? Vì sao kh
 ## Câu 2 · Phát lại
 Bản refactor float32 khác bit ở bao nhiêu đoạn, vượt dung sai ở bao nhiêu? Thay đổi AEB làm lệch bao nhiêu đoạn, và vì sao lệch ở đúng những khung đó (mở một đoạn ra xem)? Phát theo thời gian thật làm lộ ra điều gì mà phát nhanh nhất che đi?
 
-(trả lời ở đây)
+- Chạy lại cùng mã: **0/600** đoạn khác nhau, nên công cụ phát lại tái lập được.
+- Bản refactor float32 không giống từng bit ở **600/600** đoạn (sai lệch lớn nhất 4,0·10⁻⁴), nhưng **0/600** đoạn vượt dung sai (atol = rtol = 10⁻³). Dung sai hợp lý vì cộng số thực không kết hợp: (0,1+0,2)+0,3 = 0,6000000000000001 còn 0,1+(0,2+0,3) = 0,6. Sai lệch 10⁻⁴ là nhiễu số học; 10⁻³ đủ hẹp để vẫn bắt được thay đổi thật.
+- AEB (phanh khẩn cấp khi TTC < 1,5 s) làm lệch **8/600** đoạn (chỉ số 64, 78, 195, 243, 247 và 3 đoạn khác), không phải tất cả.
+- Mở đoạn 64: lệch ở 3 khung (75–77), TTC 1,48 → 1,44 s; lệnh IDM khoảng −4,4 m/s² bị thay bằng −6,0 m/s². Đoạn 78 lệch ở 1 khung (TTC 1,47 s). Lệch đúng ở các khung này vì đó là lúc TTC tụt xuống dưới 1,5 s ở cuối đoạn, khi khoảng cách còn 4,4–5,0 m.
+- Phát nhanh nhất: **0** khung trễ và **0** khung rớt, vì không có hạn chót (deadline). Phát theo thời gian thật: **581** khung trễ và **571** khung rớt trên 59.551 khung, làm **378/600** đoạn đổi kết quả. Đó là lỗi trễ và rớt khung mà phát nhanh nhất che đi.
 
 ## Câu 3 · Kịch bản
 Lưới của bạn (tốc độ cruise, giới hạn khoảng cách, số ô): bao nhiêu % ô **không ai tránh được**? Độ trễ phản ứng 0 → 0,6 s làm vùng đâm của IDM tăng bao nhiêu? Log có phủ vùng khó không? (dẫn giới hạn phanh mạnh nhất của người lái trong log, và phần lưới đòi hỏi hơn thế)
