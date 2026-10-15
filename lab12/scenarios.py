@@ -21,12 +21,9 @@ def required_decel(gap, closing):
 def unavoidable(gaps, dvs, t_react=0.0, b_max=C.B_MAX):
     """Boolean grid (len(dvs), len(gaps)): True where NO planner can avoid contact, even braking at b_max after the
     reaction delay: gap < dv * t_react + dv^2 / (2 b_max)  (lead keeps its speed)."""
-    # TODO (Bước 2): hãy tự cài hàm này. Gợi ý:
-    #   Hãy tự suy ra biên. Trong t_react xe vẫn giữ tốc độ nên khoảng cách co lại dv * t_react. Sau đó
-    #   phanh b_max cần dv^2 / (2 * b_max) để triệt tiêu tốc độ tiến gần. Bất khả thi khi gap nhỏ hơn tổng
-    #   hai đoạn đó. Dùng np.meshgrid(gaps, dvs) để kết quả có shape (len(dvs), len(gaps)). Với dv = 0 phải
-    #   luôn tránh được.
-    raise NotImplementedError("TODO unavoidable: xem GUIDE.md, Bước 2")
+    # during the reaction delay the gap shrinks by dv * t_react; braking at b_max then removes dv in dv^2 / (2 * b_max)
+    G, DV = np.meshgrid(np.asarray(gaps, float), np.asarray(dvs, float))
+    return G < DV * t_react + DV ** 2 / (2 * b_max)
 
 
 def mine_braking(logs, threshold=C.BRAKE_THRESHOLD, min_steps=5):
