@@ -43,7 +43,11 @@ Bản refactor float32 khác bit ở bao nhiêu đoạn, vượt dung sai ở ba
 ## Câu 3 · Kịch bản
 Lưới của bạn (tốc độ cruise, giới hạn khoảng cách, số ô): bao nhiêu % ô **không ai tránh được**? Độ trễ phản ứng 0 → 0,6 s làm vùng đâm của IDM tăng bao nhiêu? Log có phủ vùng khó không? (dẫn giới hạn phanh mạnh nhất của người lái trong log, và phần lưới đòi hỏi hơn thế)
 
-(trả lời ở đây)
+- Lưới: 60 khoảng cách (2,8–59,3 m) × 45 tốc độ tiến gần (0–12 m/s, cruise 12 m/s) = **2.700** ô.
+- Ô **không ai tránh được** (biên bất khả thi: phanh hết cỡ sau thời gian trễ): **2,2 %** khi t_react = 0 và **7,4 %** khi t_react = 0,6 s. Bộ mô phỏng khớp biên này với 0 ô lệch ở cả hai độ trễ.
+- Độ trễ 0 → 0,6 s làm vùng đâm của IDM tăng từ **2,2 %** lên **7,4 %** lưới (+5,2 điểm). Vùng "tránh được nhưng vẫn đâm" của IDM là **0,0 %** ở cả hai độ trễ, nên mọi lần IDM đâm đều thuộc vùng bất khả thi.
+- Người lái trong log phanh mạnh nhất khoảng **3,6 m/s²** (phân vị 99,9), trong khi bộ phanh làm được 9 m/s². **8,6 %** lưới đòi hỏi phanh mạnh hơn mức đó.
+- Log phủ vùng khó một phần: trong 614 sự kiện phanh, chỉ 33 có tốc độ tiến gần trên 4 m/s và 7 trên 6 m/s; **không có sự kiện nào** ở gap dưới 10 m với tốc độ tiến gần trên 4 m/s, tức đúng vùng khó nhất của lưới.
 
 ## Câu 4 · Vòng hở và vòng kín
 Dán bảng L2 và tỷ lệ va chạm của bốn bộ điều khiển (kèm hạng ở mỗi cách chấm). Cặp nào đổi thứ tự? Vì sao IDM có L2 như vậy mà vẫn lái tốt? Vì sao EgoMLP có L2 tốt hơn constant-velocity mà vẫn đâm?
