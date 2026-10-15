@@ -25,7 +25,11 @@
 ## Câu 1 · Dữ liệu
 Bước 0 bạn phát hiện những vấn đề gì ở dữ liệu? Vì sao không dùng cột `Acc_LV`, và bạn thay bằng gì? Bao nhiêu quỹ đạo bị loại vì trùng, và vì sao chia theo quỹ đạo?
 
-(trả lời ở đây)
+- Ba vấn đề chính: (1) cột `Acc_LV` không khớp đạo hàm của `Speed_LV`, tương quan chỉ **0,045**, trong khi cột `Acc_FAV` của xe theo sau đạt **0,929**; (2) **383** quỹ đạo trùng hệt nhau (trên 9.993, tức 3,8 %), nằm ở các ID cách xa nhau, nên chia theo ID sẽ làm lọt dữ liệu từ train sang test; (3) quỹ đạo dài 70–109 bước (10 Hz) và các khung liền kề gần như giống nhau.
+- Không dùng `Acc_LV` vì nó không đo gia tốc xe dẫn. Thay bằng gia tốc tính từ `Speed_LV`: làm mượt trung bình trượt 5 điểm rồi lấy sai phân trung tâm (`derive_lead`). Ngưỡng "xe dẫn đang phanh" −2 m/s² áp lên đại lượng này.
+- Loại trùng: **383** quỹ đạo, còn **9.610** quỹ đạo sạch.
+- Chia theo quỹ đạo (seed 7379, 30 % test): **6.727** quỹ đạo train và **2.883** quỹ đạo test. Chia theo khung sẽ đưa các khung gần như trùng vào cả hai tập và làm kết quả test quá lạc quan.
+- Kiểm tra thêm: `Spatial_Gap` = Pos_LV − Pos_FAV − 4,5 m, khớp đến 4·10⁻¹¹ m, nên khoảng cách trong log đáng tin.
 
 ## Câu 2 · Phát lại
 Bản refactor float32 khác bit ở bao nhiêu đoạn, vượt dung sai ở bao nhiêu? Thay đổi AEB làm lệch bao nhiêu đoạn, và vì sao lệch ở đúng những khung đó (mở một đoạn ra xem)? Phát theo thời gian thật làm lộ ra điều gì mà phát nhanh nhất che đi?
