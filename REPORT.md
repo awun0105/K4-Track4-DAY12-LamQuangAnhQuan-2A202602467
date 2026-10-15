@@ -61,7 +61,11 @@ Dán bảng L2 và tỷ lệ va chạm của bốn bộ điều khiển (kèm h�
 ## Câu 5 · Một lần chạy chưa đủ
 EgoMLP dao động bao nhiêu giữa các seed? Khoảng tin cậy Wilson nói gì? Nếu bạn chỉ chạy đúng một seed thì có thể báo kết quả nào, và vì sao điều đó nguy hiểm?
 
-(trả lời ở đây)
+- EgoMLP qua 5 seed đâm **15,8 %** đến **35,7 %** (seed 7992: 20,2 %; 7993: 15,8 %; 7994: 35,7 %; 7995: 23,1 %; 7996: 15,9 %), dải gần 20 điểm phần trăm.
+- Khoảng Wilson 95 % của seed tốt nhất (7993: [14,5; 17,2] %) và seed xấu nhất (7994: [33,9; 37,4] %) **không chồng nhau**. Chênh lệch giữa các seed là thật, không phải nhiễu của việc lấy mẫu 2.883 quỹ đạo.
+- Wilson chỉ nói về sai số lấy mẫu trong một tập test; biến thiên giữa các lần huấn luyện chỉ thấy khi nhìn dải qua seed. PercMLP cũng dao động 0,5–2,8 %, và seed tệ nhất (2,84 %, CI [2,3; 3,5] %) làm nó rớt ngưỡng ổn định R5 (dải phải ≤ 1 điểm).
+- Nếu chỉ chạy seed 7993, bạn sẽ báo "EgoMLP ≈ 16 %, tốt hơn const-vel (19,6 %)". Nếu chạy seed 7994, bạn sẽ báo "35,7 %, gần gấp đôi const-vel". Hai kết luận trái nhau chỉ vì chọn seed; và 3 trên 5 seed của EgoMLP còn tệ hơn const-vel.
+- Vì vậy mỗi kết quả phải kèm dải qua seed, và cổng dùng seed tệ nhất (R2), không dùng seed đẹp nhất.
 
 ## Câu 6 · Tác nhân phản ứng
 Dán bảng "xe sau phát lại" và "xe sau phản ứng". `T` bạn hiệu chỉnh là bao nhiêu, xe sau chân thực đến mức nào so với xe không phản ứng? Vì sao IDM bị tính "va chạm giả" khi xe sau chỉ phát lại, và điều này làm đổi kết luận về bộ điều khiển ra sao?
