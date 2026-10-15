@@ -90,4 +90,9 @@ Quy tắc nào chặn PercMLP và nguyên nhân gốc là gì (dẫn số)? Bạ
 ## Câu 8 · Bài lab này không chứng minh được gì
 Chọn **ít nhất ba** giới hạn quan trọng nhất đối với việc quyết định phát hành và giải thích vì sao mỗi cái làm kết luận của bạn kém chắc chắn. Điều gì cần làm tiếp để thu hẹp khoảng cách đến thế giới thật?
 
-(trả lời ở đây)
+- **Một chiều dọc, không chuyển làn.** Mô phỏng chỉ có khoảng cách × tốc độ tiến gần, nên không đánh giá được xe chen từ bên hông, né chướng ngại hay đường cong. Với quyết định phát hành, "không đâm xe trước trong một chiều" chưa đủ để kết luận an toàn toàn cảnh.
+- **Xe dẫn trong log không phản ứng với xe thử.** Đường xe dẫn được phát lại nguyên văn. Mục 6 cho thấy kết luận đổi khi xe sau phản ứng; tương tự, nếu xe ta lái khác đi thì xe dẫn không đổi theo, nên số va chạm vòng kín trên log có thể lệch so với thế giới thật.
+- **Log hiếm phanh mạnh.** Người lái phanh tối đa khoảng 3,6 m/s² và 8,6 % lưới đòi hỏi mạnh hơn. Chỉ có 166 quỹ đạo trong tập test có xe dẫn phanh, nên số trên lát cắt phanh rất nhiễu (R3 phải dùng biên 5 điểm). Quyết định ở vùng này là ngoại suy, không phải đo.
+- **Không có độ trễ và nhiễu thật.** Vòng kín chỉ có nhiễu Gauss (khoảng cách ±1 m, tốc độ ±0,5 m/s), không có khung trễ hay rớt như phát lại thời gian thật (581 khung trễ, 571 khung rớt). Bảng vòng kín vì vậy có thể lạc quan hơn triển khai thật.
+- **Một lần chia dữ liệu, một tốc độ cruise.** Mọi số liệu dùng split 7379 và cruise 12 m/s của MSSV này. Split hoặc tốc độ khác có thể cho số khác.
+- Để thu hẹp khoảng cách: chạy vòng kín với nhiều split và nhiều seed; thu thập hoặc tổng hợp thêm ca phanh mạnh và cắt vào từ dữ liệu thật; mô hình hóa cảm biến và độ trễ; thử trên xe thật ở chế độ quan sát (shadow mode) trước khi phát hành.
