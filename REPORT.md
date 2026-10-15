@@ -70,7 +70,17 @@ EgoMLP dao động bao nhiêu giữa các seed? Khoảng tin cậy Wilson nói g
 ## Câu 6 · Tác nhân phản ứng
 Dán bảng "xe sau phát lại" và "xe sau phản ứng". `T` bạn hiệu chỉnh là bao nhiêu, xe sau chân thực đến mức nào so với xe không phản ứng? Vì sao IDM bị tính "va chạm giả" khi xe sau chỉ phát lại, và điều này làm đổi kết luận về bộ điều khiển ra sao?
 
-(trả lời ở đây)
+| Bộ điều khiển | Xe sau phát lại: đâm cả lưới (t = 0 / 0,6 s) | Xe sau phản ứng: đâm cả lưới (t = 0 / 0,6 s) | Đâm từ phía sau khi phát lại |
+|---|---|---|---|
+| IDM | 75,3 % / 75,7 % | 2,2 % / 7,4 % | 73,0 % / 68,3 % |
+| PercMLP | 73,7 % / 73,0 % | 19,5 % / 31,4 % | 60,5 % / 41,9 % |
+| const-vel | 77,6 % / 77,6 % | 77,6 % / 77,6 % | 0 % |
+| EgoMLP | 76,5 % / 76,9 % | 76,5 % / 76,9 % | 0 % |
+
+- T hiệu chỉnh là **1,4 s** (W1 = 0,36; T = 1,2 s cho W1 gần như bằng). Xe sau không bao giờ phản ứng có W1 = 0,86, nên xe sau đã hiệu chỉnh gần phân bố headway của người lái trong log hơn khoảng 2,4 lần (headway trung vị của người lái là 1,87 s).
+- Xe sau phát lại giữ tốc độ đã ghi và không biết xe ta vừa phanh. Khi IDM phanh gấp để tránh xe dẫn, khoảng cách với xe sau co lại và xe sau đâm vào đuôi xe ta. Con số **73,0 %** của IDM là va chạm giả: người lái thật phía sau sẽ phanh, nên lỗi không nằm ở IDM.
+- Kết luận đổi: trong thế giới phát lại, IDM đâm **75,3 %** lưới, gần bằng const-vel (77,6 %), tức trông hỏng ngang const-vel. Trong thế giới phản ứng, IDM chỉ đâm **2,2 %** (7,4 % ở 0,6 s) và là bộ tốt nhất; PercMLP đâm 19,5 % và 31,4 % do chính va chạm phía trước.
+- Vì vậy phải so sánh các bộ điều khiển trong thế giới có xe sau phản ứng; trong thế giới phát lại, va chạm phía sau che mất hành vi phía trước.
 
 ## Câu 7 · Cổng phát hành và sửa
 Quy tắc nào chặn PercMLP và nguyên nhân gốc là gì (dẫn số)? Bạn sửa bằng gì và vì sao nó chữa đúng nguyên nhân? Sau khi qua cổng, PercMLP+ có **tốt hơn** IDM không? Nó có nên được phát hành không, và bạn đề xuất làm gì trước khi quyết định?
