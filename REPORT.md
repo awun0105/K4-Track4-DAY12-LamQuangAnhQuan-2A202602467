@@ -1,6 +1,6 @@
 # REPORT — Lab Day 12
 
-> Điền **bằng lời và số liệu của chính bạn** (lấy từ màn hình và từ `evidence/*.json`). Mỗi câu 4–8 dòng là đủ. Số không có trong bằng chứng của bạn sẽ bị trừ điểm. Báo cáo công khai trên GitHub; giảng viên đối chiếu với `evidence/` và với bài của các bạn khác.
+> Báo cáo này dùng số liệu từ lần chạy đầy đủ với MSSV `202602467` (5 seed, không dùng `--quick`). Mọi con số lấy từ `evidence/*.json`; `evidence/verify.txt` là kết quả kiểm tra tự động.
 
 | | |
 |---|---|
@@ -10,9 +10,28 @@
 | Seed chia dữ liệu / seed mô hình (xem `evidence/closedloop.json`, mục `student`) | `7379` / `7992` (các seed mô hình 7992–7996) |
 | Số seed huấn luyện bạn dùng (`--seeds`) | `5` (mặc định) |
 
+## Kết luận: có nên phát hành bản mới không?
+
+**Trả lời ngắn: chưa nên thay IDM bằng PercMLP+.** PercMLP+ đã qua cổng phát hành (7/7 quy tắc), nhưng cổng chỉ chứng minh rằng nó *không kém* IDM trong giới hạn cho phép. Không có bằng chứng nào cho thấy nó *tốt hơn* IDM.
+
+Ba lý do chính:
+- **Trên log thật**, PercMLP+ đâm 8 trên 2.883 quỹ đạo (ở seed xấu nhất), còn IDM chỉ đâm 2 trên 2.883.
+- **Khi tốc độ tăng lên 20 m/s**, tức ngoài khoảng dữ liệu huấn luyện (tối đa 16 m/s), PercMLP+ đâm 0,3–3,8 % lưới trong khi IDM vẫn là 0,0 %.
+- **L2 vòng hở của PercMLP+ là 0,810 m**, tệ hơn PercMLP (0,619 m). Sửa mô hình giúp nó an toàn hơn trong các kịch bản đã thử, nhưng không giúp nó bám người lái tốt hơn.
+
+Đề xuất trước khi quyết định:
+1. Kiểm thử với nhiều cách chia dữ liệu và nhiều seed hơn, để chắc các con số không chỉ đúng với một split (7379).
+2. Thử ở tốc độ 16–20 m/s và các ca phanh mạnh hơn 3,6 m/s², là mức mạnh nhất người lái trong log từng làm.
+3. Chạy PercMLP+ song song với IDM ở chế độ quan sát (chỉ ghi lại đề xuất, không điều khiển xe) trên dữ liệu thật. Chỉ sau đó mới xét cho phép điều khiển.
+
 ## Kết quả cuối
 
-Điền từ `evidence/closedloop.json`, `openloop.json`, `gate.json` (cho mỗi mô hình học, lấy **dải qua các seed**).
+Điền từ `evidence/closedloop.json`, `openloop.json`, `gate.json`. Với mô hình học, con số là **dải qua 5 seed**, từ seed tốt nhất đến seed xấu nhất.
+
+Cách đọc bảng:
+- **L2 vòng hở** là sai lệch vị trí dự đoán so với người lái thật, đo bằng mét. Thấp hơn nghĩa là bám người lái tốt hơn.
+- **Va chạm vòng kín** là tỷ lệ quỹ đạo trên log mà xe tự lái đâm xe dẫn. Thấp hơn nghĩa là an toàn hơn.
+- **Quyết định cổng** là kết quả kiểm tra 7 quy tắc. "CHẶN (R2, R3, …)" liệt kê các quy tắc bị rớt.
 
 | Bộ điều khiển | L2 vòng hở (m) | Va chạm vòng kín trên log (%) | Quyết định cổng |
 |---|---|---|---|
@@ -20,84 +39,128 @@
 | IDM | 1,500 | 0,07 (2 trên 2.883 quỹ đạo) | (baseline) |
 | EgoMLP | 0,760 ± 0,003 (5 seed) | 15,8 … 35,7 (trung bình 22,1; seed xấu nhất 35,7) | CHẶN (R2, R3, R4, R5, R6) |
 | PercMLP | 0,619 ± 0,002 (5 seed) | 0,5 … 2,8 (trung bình 1,4; seed xấu nhất 2,8) | CHẶN (R2, R3, R4, R5, R6) |
-| PercMLP+ (sau khi sửa) | 0,810 ± 0,015 (5 seed) | 0,2 … 0,3 (trung bình 0,20; seed xấu nhất 0,28, CI 95 % [0,14; 0,55]) | PHÁT HÀNH (7/7 quy tắc) |
+| PercMLP+ (sau khi sửa) | 0,810 ± 0,015 (5 seed) | 0,2 … 0,3 (trung bình 0,20; seed xấu nhất 0,28, CI 95 % [0,14; 0,55]) | ĐẠT CỔNG (7/7): không kém IDM, chưa tốt hơn |
+
+## Thuật ngữ nhanh
+
+- **Vòng hở:** chấm mô hình bằng cách dự đoán lại đúng quỹ đạo người lái đã đi, không cho nó tự lái.
+- **Vòng kín:** cho bộ điều khiển tự lái trong mô phỏng; xe dẫn được phát lại từ log, rồi đếm xem xe ta có đâm không.
+- **L2:** sai lệch vị trí dự đoán so với người lái thật, trung bình trên các khoảng dự đoán 1, 2 và 3 giây (mét).
+- **TTC (thời gian va chạm):** khoảng cách chia cho tốc độ tiến gần. TTC càng nhỏ thì càng nguy hiểm.
+- **Khoảng cách thời gian (headway):** khoảng cách tới xe phía trước chia cho tốc độ, đo bằng giây. Người lái trong log trung bình giữ khoảng 1,87 s.
+- **Seed:** một lần huấn luyện mô hình với số khởi tạo ngẫu nhiên khác nhau, trên cùng một bộ dữ liệu.
+- **Dung sai:** sai lệch nhỏ được chấp nhận khi so sánh hai lần chạy (ở đây 0,001).
+- **Quy tắc cổng R1–R7:** R1 phát lại tái lập được; R2 va chạm trên log; R3 ca xe dẫn phanh; R4 lưới cắt vào; R5 ổn định giữa các seed; R6 xe sau phản ứng; R7 đủ số tình huống.
 
 ## Câu 1 · Dữ liệu
 Bước 0 bạn phát hiện những vấn đề gì ở dữ liệu? Vì sao không dùng cột `Acc_LV`, và bạn thay bằng gì? Bao nhiêu quỹ đạo bị loại vì trùng, và vì sao chia theo quỹ đạo?
 
-- Ba vấn đề chính: (1) cột `Acc_LV` không khớp đạo hàm của `Speed_LV`, tương quan chỉ **0,045**, trong khi cột `Acc_FAV` của xe theo sau đạt **0,929**; (2) **383** quỹ đạo trùng hệt nhau (trên 9.993, tức 3,8 %), nằm ở các ID cách xa nhau, nên chia theo ID sẽ làm lọt dữ liệu từ train sang test; (3) quỹ đạo dài 70–109 bước (10 Hz) và các khung liền kề gần như giống nhau.
-- Không dùng `Acc_LV` vì nó không đo gia tốc xe dẫn. Thay bằng gia tốc tính từ `Speed_LV`: làm mượt trung bình trượt 5 điểm rồi lấy sai phân trung tâm (`derive_lead`). Ngưỡng "xe dẫn đang phanh" −2 m/s² áp lên đại lượng này.
-- Loại trùng: **383** quỹ đạo, còn **9.610** quỹ đạo sạch.
-- Chia theo quỹ đạo (seed 7379, 30 % test): **6.727** quỹ đạo train và **2.883** quỹ đạo test. Chia theo khung sẽ đưa các khung gần như trùng vào cả hai tập và làm kết quả test quá lạc quan.
-- Kiểm tra thêm: `Spatial_Gap` = Pos_LV − Pos_FAV − 4,5 m, khớp đến 4·10⁻¹¹ m, nên khoảng cách trong log đáng tin.
+- **Ba vấn đề ở dữ liệu:**
+  1. Cột gia tốc của xe dẫn (`Acc_LV`) không khớp với sự thay đổi tốc độ của chính xe đó. Tương quan chỉ **0,045**, gần 0 nghĩa là gần như không liên quan. Trong khi đó, cột gia tốc của xe theo sau (`Acc_FAV`) khớp, tương quan **0,929**.
+  2. Có **383** quỹ đạo trùng hệt nhau trên tổng **9.993** (khoảng 3,8 %). Các bản trùng nằm ở những mã ID cách xa nhau, nên không dễ nhận ra.
+  3. Mỗi quỹ đạo dài 70–109 khung (10 khung mỗi giây), và các khung liền kề gần như giống nhau.
+- **Cách xử lý:** không dùng `Acc_LV`. Thay bằng gia tốc tính từ tốc độ của xe dẫn: làm mượt bằng trung bình trượt 5 điểm, rồi lấy sai phân trung tâm. Ngưỡng "xe dẫn đang phanh" (−2 m/s²) được áp lên đại lượng này.
+- **Kết quả làm sạch:** loại 383 quỹ đạo trùng, còn **9.610** quỹ đạo. Chia 30 % làm tập test: **2.883** quỹ đạo test và **6.727** quỹ đạo train (seed chia 7379).
+- **Vì sao chia theo quỹ đạo:** hai khung liền kề của cùng một quỹ đạo gần như trùng nhau. Nếu chia theo khung, một phần khung giống hệt nhau sẽ nằm vừa ở train vừa ở test, và kết quả test sẽ đẹp giả tạo. Chia theo quỹ đạo thì tập test là dữ liệu mô hình chưa từng thấy.
+- **Kiểm tra thêm:** khoảng cách trong log khớp công thức `Spatial_Gap = Pos_LV − Pos_FAV − 4,5 m`, sai lệch chỉ cỡ 10⁻¹¹ m, nên có thể tin dữ liệu khoảng cách.
+
+**Kết luận:** dữ liệu thô không dùng được ngay. Nếu tin cột `Acc_LV`, ta sẽ tìm sai các ca phanh. Nếu không loại 383 bản trùng và không chia theo quỹ đạo, kết quả test sẽ bị thổi phồng. Mọi con số ở các câu sau đều dựa trên bước làm sạch này.
 
 ## Câu 2 · Phát lại
 Bản refactor float32 khác bit ở bao nhiêu đoạn, vượt dung sai ở bao nhiêu? Thay đổi AEB làm lệch bao nhiêu đoạn, và vì sao lệch ở đúng những khung đó (mở một đoạn ra xem)? Phát theo thời gian thật làm lộ ra điều gì mà phát nhanh nhất che đi?
 
-- Chạy lại cùng mã: **0/600** đoạn khác nhau, nên công cụ phát lại tái lập được.
-- Bản refactor float32 không giống từng bit ở **600/600** đoạn (sai lệch lớn nhất 4,0·10⁻⁴), nhưng **0/600** đoạn vượt dung sai (atol = rtol = 10⁻³). Dung sai hợp lý vì cộng số thực không kết hợp: (0,1+0,2)+0,3 = 0,6000000000000001 còn 0,1+(0,2+0,3) = 0,6. Sai lệch 10⁻⁴ là nhiễu số học; 10⁻³ đủ hẹp để vẫn bắt được thay đổi thật.
-- AEB (phanh khẩn cấp khi TTC < 1,5 s) làm lệch **8/600** đoạn (chỉ số 64, 78, 195, 243, 247 và 3 đoạn khác), không phải tất cả.
-- Mở đoạn 64: lệch ở 3 khung (75–77), TTC 1,48 → 1,44 s; lệnh IDM khoảng −4,4 m/s² bị thay bằng −6,0 m/s². Đoạn 78 lệch ở 1 khung (TTC 1,47 s). Lệch đúng ở các khung này vì đó là lúc TTC tụt xuống dưới 1,5 s ở cuối đoạn, khi khoảng cách còn 4,4–5,0 m.
-- Phát nhanh nhất: **0** khung trễ và **0** khung rớt, vì không có hạn chót (deadline). Phát theo thời gian thật: **581** khung trễ và **571** khung rớt trên 59.551 khung, làm **378/600** đoạn đổi kết quả. Đó là lỗi trễ và rớt khung mà phát nhanh nhất che đi.
+- **Công cụ phát lại có tái lập được không?** Chạy lại cùng một mã thì **0 / 600** đoạn khác nhau, tức kết quả lặp lại được.
+- **Bản refactor float32 có "đúng" không?** Cả **600 / 600** đoạn đều khác nhau từng bit, sai lệch lớn nhất 4,0·10⁻⁴. Nhưng **0 / 600** đoạn vượt dung sai 0,001. Khác từng bit không có nghĩa là sai, vì cộng số thực không có tính kết hợp: (0,1+0,2)+0,3 = 0,6000000000000001, còn 0,1+(0,2+0,3) = 0,6. Dung sai 0,001 đủ rộng để bỏ qua nhiễu số học, nhưng đủ hẹp để vẫn phát hiện thay đổi thật.
+- **Thay đổi AEB làm lệch bao nhiêu đoạn?** AEB là phanh khẩn cấp, kích hoạt khi TTC dưới 1,5 s. Nó làm lệch **8 / 600** đoạn, không phải tất cả.
+- **Vì sao lệch đúng những khung đó?** Mở đoạn 64: lệch ở 3 khung (75–77). Ở các khung này TTC tụt xuống 1,44–1,48 s, khoảng cách còn 4,4–5,0 m, và AEB ép lệnh từ khoảng −4,4 m/s² thành −6,0 m/s². Đoạn 78 chỉ lệch ở 1 khung (TTC 1,47 s).
+- **Phát theo thời gian thật lộ ra điều gì?** Phát nhanh nhất cho **0** khung trễ và **0** khung rớt, vì nó không có hạn chót: khung sau được gửi ngay khi khung trước xử lý xong. Phát theo thời gian thật cho **581** khung trễ và **571** khung rớt trên tổng 59.551 khung. Nguyên nhân: khoảng 1 % khung gặp một lần xử lý chậm 140 ms, dài hơn chu kỳ 100 ms, nên lệnh đến muộn và các khung đến lúc đang bận bị bỏ. Kết quả là **378 / 600** đoạn đổi kết quả.
+
+**Kết luận:** phát nhanh nhất che mất lỗi về thời gian, tức trễ và rớt khung, là loại lỗi xuất hiện khi xe chạy thật. Vì vậy kiểm thử phát lại phải mô phỏng thời gian thật, và phải có dung sai để không báo động giả vì nhiễu số học. Việc chỉ 8 / 600 đoạn lệch cũng cho thấy thay đổi AEB chỉ ảnh hưởng đúng vùng TTC thấp, không làm đổi hành vi lái thường ngày.
 
 ## Câu 3 · Kịch bản
 Lưới của bạn (tốc độ cruise, giới hạn khoảng cách, số ô): bao nhiêu % ô **không ai tránh được**? Độ trễ phản ứng 0 → 0,6 s làm vùng đâm của IDM tăng bao nhiêu? Log có phủ vùng khó không? (dẫn giới hạn phanh mạnh nhất của người lái trong log, và phần lưới đòi hỏi hơn thế)
 
-- Lưới: 60 khoảng cách (2,8–59,3 m) × 45 tốc độ tiến gần (0–12 m/s, cruise 12 m/s) = **2.700** ô.
-- Ô **không ai tránh được** (biên bất khả thi: phanh hết cỡ sau thời gian trễ): **2,2 %** khi t_react = 0 và **7,4 %** khi t_react = 0,6 s. Bộ mô phỏng khớp biên này với 0 ô lệch ở cả hai độ trễ.
-- Độ trễ 0 → 0,6 s làm vùng đâm của IDM tăng từ **2,2 %** lên **7,4 %** lưới (+5,2 điểm). Vùng "tránh được nhưng vẫn đâm" của IDM là **0,0 %** ở cả hai độ trễ, nên mọi lần IDM đâm đều thuộc vùng bất khả thi.
-- Người lái trong log phanh mạnh nhất khoảng **3,6 m/s²** (phân vị 99,9), trong khi bộ phanh làm được 9 m/s². **8,6 %** lưới đòi hỏi phanh mạnh hơn mức đó.
-- Log phủ vùng khó một phần: trong 614 sự kiện phanh, chỉ 33 có tốc độ tiến gần trên 4 m/s và 7 trên 6 m/s; **không có sự kiện nào** ở gap dưới 10 m với tốc độ tiến gần trên 4 m/s, tức đúng vùng khó nhất của lưới.
+- **Lưới tình huống:** 60 khoảng cách (từ 2,8 đến 59,3 m) × 45 tốc độ tiến gần (từ 0 đến 12 m/s; xe ta chạy cruise 12 m/s), tổng **2.700** ô. Mỗi ô là một tình huống có xe cắt vào.
+- **Ô không ai tránh được** là các ô mà ngay cả khi phanh hết cỡ vẫn đâm. Con số là **2,2 %** khi không có độ trễ phản ứng, và **7,4 %** khi phản ứng trễ 0,6 s. Bộ mô phỏng khớp đúng ranh giới này, với 0 ô lệch ở cả hai độ trễ.
+- **Độ trễ làm vùng đâm của IDM tăng bao nhiêu?** Từ **2,2 %** lên **7,4 %** lưới, tức tăng 5,2 điểm phần trăm. Vùng "tránh được nhưng vẫn đâm" của IDM là **0,0 %** ở cả hai độ trễ, nghĩa là mọi lần IDM đâm đều nằm trong vùng không ai tránh được.
+- **Giới hạn phanh của người lái trong log:** người lái theo sau phanh mạnh nhất khoảng **3,6 m/s²** (phân vị 99,9 %), trong khi xe có thể phanh tới 9 m/s². **8,6 %** lưới đòi hỏi phanh mạnh hơn mức người lái từng làm.
+- **Log có phủ vùng khó không?** Có 614 sự kiện phanh trong log, nhưng chỉ 33 sự kiện có tốc độ tiến gần trên 4 m/s, và **không có sự kiện nào** ở khoảng cách dưới 10 m với tốc độ tiến gần trên 4 m/s. Đó chính là vùng nguy hiểm nhất của lưới.
+
+**Kết luận:** vùng nguy hiểm nhất (khoảng cách nhỏ, tiến gần nhanh) không có trong log. Mọi nhận định về mô hình học ở vùng đó vì vậy là suy diễn, không phải đo đạc. Còn IDM không đâm oan: mọi lần đâm của nó đều thuộc vùng không ai tránh được, nên nó là chuẩn so sánh hợp lý.
 
 ## Câu 4 · Vòng hở và vòng kín
 Dán bảng L2 và tỷ lệ va chạm của bốn bộ điều khiển (kèm hạng ở mỗi cách chấm). Cặp nào đổi thứ tự? Vì sao IDM có L2 như vậy mà vẫn lái tốt? Vì sao EgoMLP có L2 tốt hơn constant-velocity mà vẫn đâm?
 
-- Hạng ở vòng hở (L2 thấp hơn là tốt hơn): PercMLP 1 (0,619 m), EgoMLP 2 (0,760 m), const-vel 3 (1,254 m), IDM 4 (1,500 m).
-- Hạng ở vòng kín (va chạm thấp hơn là tốt hơn): IDM 1 (0,07 %), PercMLP 2 (1,4 %, trung bình 5 seed), const-vel 3 (19,6 %), EgoMLP 4 (22,1 %, trung bình 5 seed).
-- Bốn cặp đổi thứ tự: (const-vel, IDM), (const-vel, EgoMLP), (IDM, EgoMLP), (IDM, PercMLP). Đáng chú ý nhất: IDM có L2 xấu nhất nhưng an toàn nhất, còn EgoMLP có L2 tốt hơn const-vel nhưng đâm nhiều hơn.
-- IDM có L2 lớn vì nó không bắt chước người lái: T = 1,2 s và s0 = 2 m, trong khi headway trung vị của người lái trong log là 1,87 s, nên quỹ đạo luôn lệch. Trong vòng kín nó thấy khoảng cách thật và phanh theo ngay, nên chỉ đâm 2 trên 2.883 quỹ đạo, cả hai đều có xe dẫn phanh.
-- EgoMLP chỉ nhìn tốc độ quá khứ của chính xe ta. Nó học được xu hướng tăng/giảm tốc chung nên L2 tốt hơn const-vel, kể cả trên lát cắt xe dẫn phanh (1,096 m so với 1,903 m). Nhưng nó không thấy khoảng cách tới xe dẫn nên không phanh kịp: trên 166 quỹ đạo có xe dẫn phanh, nó đâm 44–57 %, gần bằng const-vel (53,6 %).
+| Bộ điều khiển | L2 vòng hở (hạng) | Đâm trên log, vòng kín (hạng) |
+|---|---|---|
+| PercMLP | 0,619 m (1) | 1,4 % (2) |
+| EgoMLP | 0,760 m (2) | 22,1 % (4) |
+| constant-velocity | 1,254 m (3) | 19,6 % (3) |
+| IDM | 1,500 m (4) | 0,07 % (1) |
+
+- **Cặp nào đổi thứ tự?** Có bốn cặp: (constant-velocity, IDM), (constant-velocity, EgoMLP), (IDM, EgoMLP), (IDM, PercMLP). Đáng chú ý nhất: IDM có L2 xấu nhất nhưng an toàn nhất, còn EgoMLP có L2 tốt hơn constant-velocity nhưng đâm nhiều hơn.
+- **Vì sao IDM có L2 lớn mà vẫn lái tốt?** L2 đo xem mô hình có bám đúng tốc độ người lái trong 3 giây tới hay không. IDM khác người lái ở hai điểm: nó giữ khoảng cách thời gian 1,2 s, trong khi người lái trong log trung bình giữ 1,87 s; và dự báo của nó giả định xe dẫn giữ nguyên tốc độ. Vì vậy quỹ đạo của nó lệch khỏi người lái. Nhưng trong vòng kín, IDM thấy khoảng cách thật ở mỗi bước và phanh ngay, nên chỉ đâm 2 trên 2.883 quỹ đạo, cả hai đều là ca xe dẫn phanh.
+- **Vì sao EgoMLP bám tốt hơn constant-velocity mà vẫn đâm?** EgoMLP chỉ nhìn tốc độ quá khứ của chính xe ta. Nhờ đó nó học được xu hướng tăng hoặc giảm tốc chung của người lái, nên L2 tốt hơn, kể cả trên các ca xe dẫn phanh (1,096 m so với 1,903 m). Nhưng nó không biết khoảng cách tới xe phía trước, nên không phanh kịp: trên 166 quỹ đạo có xe dẫn phanh, nó đâm 44–57 %, gần bằng constant-velocity (53,6 %).
+
+**Kết luận:** L2 đo việc "giống người lái", không đo "an toàn". Một mô hình có thể bắt chước người lái khá tốt mà vẫn đâm, còn một bộ điều khiển có L2 lớn vẫn có thể an toàn hơn. Vì vậy không nên chọn bộ điều khiển chỉ bằng L2; phải kiểm tra bằng vòng kín.
 
 ## Câu 5 · Một lần chạy chưa đủ
 EgoMLP dao động bao nhiêu giữa các seed? Khoảng tin cậy Wilson nói gì? Nếu bạn chỉ chạy đúng một seed thì có thể báo kết quả nào, và vì sao điều đó nguy hiểm?
 
-- EgoMLP qua 5 seed đâm **15,8 %** đến **35,7 %** (seed 7992: 20,2 %; 7993: 15,8 %; 7994: 35,7 %; 7995: 23,1 %; 7996: 15,9 %), dải gần 20 điểm phần trăm.
-- Khoảng Wilson 95 % của seed tốt nhất (7993: [14,5; 17,2] %) và seed xấu nhất (7994: [33,9; 37,4] %) **không chồng nhau**. Chênh lệch giữa các seed là thật, không phải nhiễu của việc lấy mẫu 2.883 quỹ đạo.
-- Wilson chỉ nói về sai số lấy mẫu trong một tập test; biến thiên giữa các lần huấn luyện chỉ thấy khi nhìn dải qua seed. PercMLP cũng dao động 0,5–2,8 %, và seed tệ nhất (2,84 %, CI [2,3; 3,5] %) làm nó rớt ngưỡng ổn định R5 (dải phải ≤ 1 điểm).
-- Nếu chỉ chạy seed 7993, bạn sẽ báo "EgoMLP ≈ 16 %, tốt hơn const-vel (19,6 %)". Nếu chạy seed 7994, bạn sẽ báo "35,7 %, gần gấp đôi const-vel". Hai kết luận trái nhau chỉ vì chọn seed; và 3 trên 5 seed của EgoMLP còn tệ hơn const-vel.
-- Vì vậy mỗi kết quả phải kèm dải qua seed, và cổng dùng seed tệ nhất (R2), không dùng seed đẹp nhất.
+- **EgoMLP dao động bao nhiêu?** Từ **15,8 %** đến **35,7 %** qua 5 seed, dải gần 20 điểm phần trăm: seed 7992: 20,2 %; 7993: 15,8 %; 7994: 35,7 %; 7995: 23,1 %; 7996: 15,9 %.
+- **Khoảng Wilson nói gì?** Khoảng tin cậy 95 % của seed tốt nhất (7993: từ 14,5 đến 17,2 %) và của seed xấu nhất (7994: từ 33,9 đến 37,4 %) **không chồng nhau**. Vì vậy chênh lệch giữa các seed là thật, không chỉ là nhiễu khi lấy mẫu 2.883 quỹ đạo.
+- **Nhưng Wilson có giới hạn:** nó chỉ đo sai số lấy mẫu trên một tập test, không cho biết kết quả thay đổi thế nào khi huấn luyện lại. Muốn biết điều đó phải xem dải qua các seed. PercMLP cũng dao động từ 0,5 đến 2,8 %, và seed tệ nhất làm nó rớt quy tắc R5 (dải không được vượt 1 điểm).
+- **Nếu chỉ chạy một seed thì sao?** Chạy seed 7993, bạn sẽ báo "EgoMLP khoảng 16 %, tốt hơn constant-velocity (19,6 %)". Chạy seed 7994, bạn sẽ báo "35,7 %, gần gấp đôi constant-velocity". Hai kết luận trái ngược nhau chỉ vì chọn seed. Và 3 trên 5 seed của EgoMLP thực ra còn tệ hơn constant-velocity.
+
+**Kết luận:** một lần chạy chỉ là một mẫu ngẫu nhiên, không phải sự thật. Cùng một mô hình, chỉ đổi seed đã có thể được báo là "tốt" hoặc "tệ". Vì vậy kết quả phải báo kèm dải qua các seed. Cổng phát hành dùng seed tệ nhất (R2), không dùng seed đẹp nhất, và đó là cách làm đúng khi quyết định phát hành.
 
 ## Câu 6 · Tác nhân phản ứng
 Dán bảng "xe sau phát lại" và "xe sau phản ứng". `T` bạn hiệu chỉnh là bao nhiêu, xe sau chân thực đến mức nào so với xe không phản ứng? Vì sao IDM bị tính "va chạm giả" khi xe sau chỉ phát lại, và điều này làm đổi kết luận về bộ điều khiển ra sao?
 
-| Bộ điều khiển | Xe sau phát lại: đâm cả lưới (t = 0 / 0,6 s) | Xe sau phản ứng: đâm cả lưới (t = 0 / 0,6 s) | Đâm từ phía sau khi phát lại |
+| Bộ điều khiển | Xe sau chỉ phát lại: tỷ lệ đâm cả lưới (t = 0 / 0,6 s) | Xe sau biết phản ứng: tỷ lệ đâm cả lưới (t = 0 / 0,6 s) | Đâm từ phía sau khi xe sau phát lại |
 |---|---|---|---|
 | IDM | 75,3 % / 75,7 % | 2,2 % / 7,4 % | 73,0 % / 68,3 % |
 | PercMLP | 73,7 % / 73,0 % | 19,5 % / 31,4 % | 60,5 % / 41,9 % |
-| const-vel | 77,6 % / 77,6 % | 77,6 % / 77,6 % | 0 % |
+| constant-velocity | 77,6 % / 77,6 % | 77,6 % / 77,6 % | 0 % |
 | EgoMLP | 76,5 % / 76,9 % | 76,5 % / 76,9 % | 0 % |
 
-- T hiệu chỉnh là **1,4 s** (W1 = 0,36; T = 1,2 s cho W1 gần như bằng). Xe sau không bao giờ phản ứng có W1 = 0,86, nên xe sau đã hiệu chỉnh gần phân bố headway của người lái trong log hơn khoảng 2,4 lần (headway trung vị của người lái là 1,87 s).
-- Xe sau phát lại giữ tốc độ đã ghi và không biết xe ta vừa phanh. Khi IDM phanh gấp để tránh xe dẫn, khoảng cách với xe sau co lại và xe sau đâm vào đuôi xe ta. Con số **73,0 %** của IDM là va chạm giả: người lái thật phía sau sẽ phanh, nên lỗi không nằm ở IDM.
-- Kết luận đổi: trong thế giới phát lại, IDM đâm **75,3 %** lưới, gần bằng const-vel (77,6 %), tức trông hỏng ngang const-vel. Trong thế giới phản ứng, IDM chỉ đâm **2,2 %** (7,4 % ở 0,6 s) và là bộ tốt nhất; PercMLP đâm 19,5 % và 31,4 % do chính va chạm phía trước.
-- Vì vậy phải so sánh các bộ điều khiển trong thế giới có xe sau phản ứng; trong thế giới phát lại, va chạm phía sau che mất hành vi phía trước.
+- **T hiệu chỉnh là bao nhiêu?** **1,4 s**. Đây là khoảng cách thời gian làm cho xe sau giống người lái trong log nhất. Độ giống được đo bằng W1, tức khoảng cách giữa hai phân bố khoảng cách thời gian (càng nhỏ càng giống). T = 1,4 s cho W1 = 0,36, còn một xe sau không bao giờ phản ứng có W1 = 0,86. Như vậy xe sau đã hiệu chỉnh giống người lái thật hơn khoảng 2,4 lần. (T = 1,2 s cho W1 gần như bằng.)
+- **Vì sao IDM bị tính "va chạm giả"?** Xe sau chỉ phát lại giữ tốc độ đã ghi và không biết xe ta vừa phanh. Khi IDM phanh gấp để tránh xe dẫn, khoảng cách với xe sau co lại, và xe sau đâm vào đuôi xe ta. Con số **73,0 %** của IDM là va chạm giả, vì người lái thật phía sau sẽ phanh. Lỗi không nằm ở IDM.
+- **Kết luận bị đổi thế nào?** Trong thế giới phát lại, IDM đâm **75,3 %** lưới, gần bằng constant-velocity (77,6 %), nên trông như hỏng ngang constant-velocity. Trong thế giới có xe sau phản ứng, IDM chỉ đâm **2,2 %** (7,4 % khi trễ 0,6 s) và là bộ tốt nhất. PercMLP đâm 19,5 % và 31,4 %, đều là va chạm phía trước.
+
+**Kết luận:** va chạm phía sau trong thế giới phát lại che mất hành vi phía trước, và còn đổ lỗi nhầm cho IDM vì một giả định của mô phỏng. Khi so sánh bộ điều khiển, phải dùng thế giới có xe sau phản ứng. Kết luận lấy từ thế giới phát lại có thể ngược hẳn.
 
 ## Câu 7 · Cổng phát hành và sửa
 Quy tắc nào chặn PercMLP và nguyên nhân gốc là gì (dẫn số)? Bạn sửa bằng gì và vì sao nó chữa đúng nguyên nhân? Sau khi qua cổng, PercMLP+ có **tốt hơn** IDM không? Nó có nên được phát hành không, và bạn đề xuất làm gì trước khi quyết định?
 
-- Năm quy tắc chặn PercMLP: **R2** (đâm 2,8 % trên log, cận trên 3,5 %; IDM 0,07 %), **R3** (14,5 % trên lát cắt xe dẫn phanh; IDM 1,2 %), **R4** (24,0 % lưới tránh được nhưng vẫn đâm; IDM 0,0 %), **R5** (dải qua seed 0,5–2,8 %, vượt 1 điểm), **R6** (31,4 % lưới khi xe sau phản ứng; IDM 7,4 %).
-- Nguyên nhân gốc có hai loại. (a) **Kịch bản log không chứa** (R4, R6): cắt vào tốc độ cao không có trong log, PercMLP đâm ở vùng mà IDM tránh được. (b) **Sai số tích lũy khi tự lái** (R2, R3, R5): L2 vòng hở của PercMLP tốt nhất (0,619 m), nhưng các sai số nhỏ cộng dồn thành va chạm khi nó tự lái, và kết quả đổi theo seed.
-- Sửa bằng hai việc trong bước 7: thêm 20.000 kịch bản cắt vào mô phỏng, nhãn do luật IDM gán, để học tình huống log không có (chữa nguyên nhân a); và DAgger 2 vòng, cho mô hình tự lái trên log huấn luyện, gắn nhãn IDM tại chính các trạng thái nó đi vào, rồi huấn luyện lại (chữa nguyên nhân b, vì mô hình học cách phục hồi từ sai số của chính nó).
-- Sau sửa: R4 24,0 % → 0,3 %; R2 2,8 % → 0,3 % (cận trên 0,5 %); R3 14,5 % → 2,4 %; R5 dải 0,5–2,8 % → 0,2–0,3 %; R6 31,4 % → 7,7 % (ngưỡng 9,4 %). PercMLP+ qua 7/7 quy tắc.
-- **PercMLP+ không tốt hơn IDM.** Cổng kiểm tra "không kém hơn", và PercMLP+ chỉ nằm trong biên cho phép. Trên log nó đâm 8 trên 2.883 quỹ đạo (seed xấu nhất) so với 2 của IDM; trên lưới cắt vào 0,3 % so với 0,0 %; ở vận tốc 20 m/s (ngoài dữ liệu huấn luyện ≤ 16 m/s) 0,3–3,8 % so với 0,0 % của IDM; L2 vòng hở 0,810 m, tệ hơn PercMLP (0,619 m).
-- Tôi **không đề xuất thay IDM bằng PercMLP+ ngay**. Trước khi quyết định: (i) chạy nhiều split và nhiều seed hơn để kiểm tra các số không chỉ đúng với split 7379; (ii) thử ở vận tốc 16–20 m/s và ca phanh mạnh hơn 3,6 m/s² (8,6 % lưới chưa được kiểm chứng); (iii) chạy PercMLP+ song song với IDM ở chế độ quan sát (không điều khiển xe) trên dữ liệu thật rồi mới xét cho phép điều khiển.
+- **Quy tắc nào chặn PercMLP?** Năm quy tắc:
+  - **R2** (va chạm trên log): đâm 2,8 % ở seed xấu nhất, cận trên 95 % là 3,5 %. IDM là 0,07 %.
+  - **R3** (ca xe dẫn phanh): 14,5 %, trong khi IDM là 1,2 %.
+  - **R4** (lưới cắt vào): 24,0 % số ô tránh được nhưng vẫn đâm, IDM là 0,0 %.
+  - **R5** (ổn định giữa các seed): dải 0,5–2,8 %, vượt giới hạn 1 điểm.
+  - **R6** (xe sau phản ứng): 31,4 % lưới, IDM là 7,4 %.
+- **Nguyên nhân gốc có hai loại:**
+  - (a) **Log không chứa kịch bản đó** (R4, R6): cắt vào ở tốc độ cao không có trong dữ liệu, nên PercMLP đâm ở những chỗ IDM tránh được.
+  - (b) **Sai số tích lũy khi tự lái** (R2, R3, R5): L2 vòng hở của PercMLP tốt nhất (0,619 m), nhưng khi tự lái các sai số nhỏ cộng dồn thành va chạm, và kết quả đổi theo seed.
+- **Sửa bằng gì, và vì sao đúng nguyên nhân?**
+  - Với (a): thêm 20.000 kịch bản cắt vào mô phỏng, có nhãn do luật IDM gán, để mô hình học các tình huống log không có.
+  - Với (b): DAgger 2 vòng. Cho mô hình tự lái trên log huấn luyện, ghi lại các trạng thái nó tự đi vào, gắn nhãn IDM cho đúng các trạng thái đó, rồi huấn luyện lại. Nhờ vậy mô hình học cách quay về đúng hướng khi đã lệch, thay vì chỉ bắt chước người lái.
+  - Mỗi cách sửa nhắm trực tiếp vào một nguyên nhân ở trên.
+- **Kết quả sau sửa:** R4 từ 24,0 % xuống 0,3 %; R2 từ 2,8 % xuống 0,3 %; R3 từ 14,5 % xuống 2,4 %; R5 từ dải 0,5–2,8 % xuống 0,2–0,3 %; R6 từ 31,4 % xuống 7,7 % (ngưỡng 9,4 %). PercMLP+ qua **7/7** quy tắc.
+- **PercMLP+ có tốt hơn IDM không?** **Không.** Cổng chỉ kiểm tra "không kém hơn", và PercMLP+ chỉ nằm trong biên cho phép. Cụ thể: trên log, nó đâm 8 trên 2.883 quỹ đạo (seed xấu nhất), IDM đâm 2; trên lưới cắt vào, 0,3 % so với 0,0 %; ở 20 m/s, 0,3–3,8 % so với 0,0 %; L2 vòng hở 0,810 m, tệ hơn PercMLP (0,619 m).
+- **Có nên phát hành không, và nên làm gì trước?** Không nên thay IDM bằng PercMLP+ ngay. Trước khi quyết định, cần: (i) kiểm thử với nhiều split và nhiều seed hơn; (ii) thử ở 16–20 m/s và các ca phanh mạnh hơn 3,6 m/s², vì 8,6 % lưới chưa được kiểm chứng; (iii) chạy PercMLP+ song song với IDM ở chế độ quan sát trên dữ liệu thật.
+
+**Kết luận:** sửa đúng nguyên nhân đã đưa PercMLP+ qua cổng, nhưng qua cổng không đồng nghĩa với tốt hơn. Cổng "không kém hơn" chỉ ngăn mô hình tệ đi, không chứng minh mô hình hay hơn. PercMLP trước khi sửa có L2 tốt nhất nhưng khi tự lái lại đâm nhiều hơn IDM. Đây là lý do không nên chọn mô hình chỉ bằng L2.
 
 ## Câu 8 · Bài lab này không chứng minh được gì
 Chọn **ít nhất ba** giới hạn quan trọng nhất đối với việc quyết định phát hành và giải thích vì sao mỗi cái làm kết luận của bạn kém chắc chắn. Điều gì cần làm tiếp để thu hẹp khoảng cách đến thế giới thật?
 
-- **Một chiều dọc, không chuyển làn.** Mô phỏng chỉ có khoảng cách × tốc độ tiến gần, nên không đánh giá được xe chen từ bên hông, né chướng ngại hay đường cong. Với quyết định phát hành, "không đâm xe trước trong một chiều" chưa đủ để kết luận an toàn toàn cảnh.
-- **Xe dẫn trong log không phản ứng với xe thử.** Đường xe dẫn được phát lại nguyên văn. Mục 6 cho thấy kết luận đổi khi xe sau phản ứng; tương tự, nếu xe ta lái khác đi thì xe dẫn không đổi theo, nên số va chạm vòng kín trên log có thể lệch so với thế giới thật.
-- **Log hiếm phanh mạnh.** Người lái phanh tối đa khoảng 3,6 m/s² và 8,6 % lưới đòi hỏi mạnh hơn. Chỉ có 166 quỹ đạo trong tập test có xe dẫn phanh, nên số trên lát cắt phanh rất nhiễu (R3 phải dùng biên 5 điểm). Quyết định ở vùng này là ngoại suy, không phải đo.
-- **Không có độ trễ và nhiễu thật.** Vòng kín chỉ có nhiễu Gauss (khoảng cách ±1 m, tốc độ ±0,5 m/s), không có khung trễ hay rớt như phát lại thời gian thật (581 khung trễ, 571 khung rớt). Bảng vòng kín vì vậy có thể lạc quan hơn triển khai thật.
-- **Một lần chia dữ liệu, một tốc độ cruise.** Mọi số liệu dùng split 7379 và cruise 12 m/s của MSSV này. Split hoặc tốc độ khác có thể cho số khác.
-- Để thu hẹp khoảng cách: chạy vòng kín với nhiều split và nhiều seed; thu thập hoặc tổng hợp thêm ca phanh mạnh và cắt vào từ dữ liệu thật; mô hình hóa cảm biến và độ trễ; thử trên xe thật ở chế độ quan sát (shadow mode) trước khi phát hành.
+- **Chỉ có một chiều dọc, không chuyển làn.** Mô phỏng chỉ có khoảng cách và tốc độ tiến gần, nên không đánh giá được xe chen từ bên hông, né chướng ngại hay đường cong. Vì vậy "không đâm xe phía trước trong một chiều" chưa đủ để kết luận an toàn trong giao thông thật. Đây là giới hạn lớn nhất đối với quyết định phát hành.
+- **Xe dẫn trong log không phản ứng với xe thử.** Quỹ đạo xe dẫn được phát lại nguyên văn. Mục về xe sau cho thấy kết luận có thể đổi khi xe sau phản ứng. Tương tự, nếu xe ta lái khác đi thì xe dẫn không đổi theo, nên số va chạm vòng kín có thể lệch so với thực tế.
+- **Log thiếu phanh mạnh.** Người lái phanh mạnh nhất khoảng 3,6 m/s², trong khi 8,6 % lưới cần mạnh hơn. Chỉ có 166 quỹ đạo test có xe dẫn phanh, nên số liệu trên nhóm này dao động mạnh; đó là lý do R3 phải dùng biên 5 điểm. Quyết định ở vùng thiếu dữ liệu là ngoại suy, không phải đo đạc.
+- **Mô phỏng không có độ trễ và nhiễu thật.** Vòng kín chỉ có nhiễu Gauss (khoảng cách ±1 m, tốc độ ±0,5 m/s), không có khung trễ hay rớt như phát lại thời gian thật (581 khung trễ, 571 khung rớt). Kết quả vòng kín vì vậy có thể lạc quan hơn triển khai thực tế.
+- **Chỉ một lần chia dữ liệu và một tốc độ.** Mọi số liệu dùng split 7379 và tốc độ cruise 12 m/s. Split hoặc tốc độ khác có thể cho số khác, nên kết luận chỉ đáng tin trong phạm vi đã thử.
+
+**Để thu hẹp khoảng cách đến thế giới thật:** chạy vòng kín với nhiều split và nhiều seed; thu thập hoặc tổng hợp thêm ca phanh mạnh và cắt vào từ dữ liệu thật; thêm mô hình cảm biến và độ trễ; thử trên xe thật ở chế độ quan sát (shadow mode) trước khi cho điều khiển.
+
+**Kết luận:** bài lab chứng minh được *phương pháp* kiểm thử (đo đúng, tìm đúng vùng lỗi, không tin một con số đơn lẻ), nhưng không chứng minh được một hệ thống là an toàn. Với PercMLP+, bằng chứng hiện tại đủ để nói "không tệ hơn IDM trong các điều kiện đã thử", nhưng chưa đủ để thay IDM.
